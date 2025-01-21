@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  rank_api:
+    build: .
+    container_name: rank_api
+    ports:
+      - "5000:5000"
+    restart: unless-stopped
+    environment:
+      - FLASK_ENV=production
+    volumes:
+      - ./logs:/app/logs  # 로그를 호스트 시스템에 저장
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]  # 헬스체크 엔드포인트
+      interval: 30s
+      timeout: 10s
+      retries: 3
