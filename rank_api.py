@@ -29,9 +29,8 @@ def get_restaurant_rank(keyword, company_id):
     }
     """
 
-    # 순위를 찾기 위한 변수
     rank = None
-    
+
     # 1부터 300까지 50개씩 검색
     for start in range(1, 301, 50):
         variables = {
@@ -43,7 +42,7 @@ def get_restaurant_rank(keyword, company_id):
                 "isPcmap": True
             }
         }
-        
+
         data = json.dumps([{
             "operationName": "getRestaurants",
             "variables": variables,
@@ -59,19 +58,15 @@ def get_restaurant_rank(keyword, company_id):
             try:
                 response_data = response.json()
                 items = response_data[0]['data']['restaurants']['items']
-                
-                # 현재 페이지에서 업체 검색
+
                 for idx, item in enumerate(items, start=start):
                     if item['id'] == company_id:
                         rank = idx
-                        return rank  # 순위를 찾으면 즉시 반환
-                
+                        return rank
             except (json.JSONDecodeError, KeyError) as e:
                 return None
-        else:
-            return None
     
-    return None  # 업체를 찾지 못한 경우
+    return None
 
 @app.route('/get_rank', methods=['POST'])
 def get_rank():
@@ -79,14 +74,14 @@ def get_rank():
         data = request.get_json()
         keyword = data.get('keyword')
         company_id = data.get('company_id')
-        
+
         if not keyword or not company_id:
             return jsonify({
                 'error': 'Missing required parameters. Please provide both keyword and company_id.'
             }), 400
-            
+
         rank = get_restaurant_rank(keyword, company_id)
-        
+
         if rank is not None:
             return jsonify({
                 'keyword': keyword,
@@ -95,9 +90,12 @@ def get_rank():
             })
         else:
             return jsonify({
-                'error': 'Restaurant not found or error occurred during search'
-            }), 404
-            
+                'keyword': keyword,
+                'company_id': company_id,
+                'rank': None,
+                'message': 'Restaurant not found in the search results.'
+            }), 200
+
     except Exception as e:
         return jsonify({
             'error': str(e)
