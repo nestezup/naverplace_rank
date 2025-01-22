@@ -82,19 +82,12 @@ def get_rank():
 
         rank = get_restaurant_rank(keyword, company_id)
 
-        if rank is not None:
-            return jsonify({
-                'keyword': keyword,
-                'company_id': company_id,
-                'rank': rank
-            })
-        else:
-            return jsonify({
-                'keyword': keyword,
-                'company_id': company_id,
-                'rank': None,
-                'message': 'Restaurant not found in the search results.'
-            }), 200
+        return jsonify({
+            'keyword': keyword,
+            'company_id': company_id,
+            'rank': rank,
+            'message': 'Restaurant not found in the search results.' if rank is None else None
+        }), 200
 
     except Exception as e:
         return jsonify({
