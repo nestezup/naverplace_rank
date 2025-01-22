@@ -49,29 +49,40 @@ def get_restaurant_rank(keyword, company_id):
             "query": query
         }])
 
-        response = requests.post('https://pcmap-api.place.naver.com/graphql', 
-                               headers=headers, 
-                               cookies=cookies, 
-                               data=data)
+        try:
+            response = requests.post(
+                'https://pcmap-api.place.naver.com/graphql',
+                headers=headers,
+                cookies=cookies,
+                data=data
+            )
 
-        if response.status_code == 200:
-            try:
+            # 디버깅 로그 추가
+            print(f"API Request Data: {data}")
+            print(f"Response Status: {response.status_code}")
+            print(f"Response Body: {response.text}")
+
+            if response.status_code == 200:
                 response_data = response.json()
-                items = response_data[0]['data']['restaurants']['items']
+                items = response_data[0].get('data', {}).get('restaurants', {}).get('items', [])
 
                 for idx, item in enumerate(items, start=start):
-                    if item['id'] == company_id:
+                    if item.get('id') == company_id:
                         rank = idx
                         return rank
-            except (json.JSONDecodeError, KeyError) as e:
-                return None
-    
+        except Exception as e:
+            print(f"Error during API call: {e}")
+            return None
+
     return None
 
 @app.route('/get_rank', methods=['POST'])
 def get_rank():
     try:
         data = request.get_json()
+        if not data:
+            return jsonify({'error': 'Invalid JSON format.'}), 400
+
         keyword = data.get('keyword')
         company_id = data.get('company_id')
 
@@ -82,7 +93,6 @@ def get_rank():
 
         rank = get_restaurant_rank(keyword, company_id)
 
-        # rank가 None인 경우에도 200 상태 코드로 반환
         if rank is None:
             return jsonify({
                 'keyword': keyword,
@@ -99,9 +109,8 @@ def get_rank():
         }), 200
 
     except Exception as e:
-        return jsonify({
-            'error': str(e)
-        }), 500
+        print(f"Error in /get_rank: {e}")
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/health', methods=['GET'])
 def health_check():
