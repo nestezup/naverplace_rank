@@ -29,8 +29,6 @@ def get_restaurant_rank(keyword, company_id):
     }
     """
 
-    rank = None
-
     # 1부터 300까지 50개씩 검색
     for start in range(1, 301, 50):
         variables = {
@@ -64,17 +62,18 @@ def get_restaurant_rank(keyword, company_id):
 
             if response.status_code == 200:
                 response_data = response.json()
+
+                # `get()` 메서드를 사용해 안전하게 데이터 추출
                 items = response_data[0].get('data', {}).get('restaurants', {}).get('items', [])
 
                 for idx, item in enumerate(items, start=start):
                     if item.get('id') == company_id:
-                        rank = idx
-                        return rank
+                        return idx  # 순위 반환
         except Exception as e:
             print(f"Error during API call: {e}")
-            return None
+            return None  # 오류 발생 시 None 반환
 
-    return None
+    return None  # 검색 결과가 없을 때도 None 반환
 
 @app.route('/get_rank', methods=['POST'])
 def get_rank():
