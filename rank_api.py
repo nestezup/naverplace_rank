@@ -96,9 +96,9 @@ def get_rank():
             return jsonify({
                 'keyword': keyword,
                 'company_id': company_id,
-                'rank': 500,
+                'rank': 1050,
                 'message': 'Restaurant not found in the search results.'
-            }), 500
+            }), 200
 
         return jsonify({
             'keyword': keyword,
