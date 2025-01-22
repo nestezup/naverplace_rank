@@ -1,9 +1,3 @@
-from flask import Flask, request, jsonify
-import requests
-import json
-
-app = Flask(__name__)
-
 def get_restaurant_rank(keyword, company_id):
     headers = {
         'accept': '*/*',
@@ -31,7 +25,6 @@ def get_restaurant_rank(keyword, company_id):
 
     rank = None
 
-    # 1부터 300까지 50개씩 검색
     for start in range(1, 301, 50):
         variables = {
             "restaurantListInput": {
@@ -54,6 +47,11 @@ def get_restaurant_rank(keyword, company_id):
                                cookies=cookies, 
                                data=data)
 
+        # 디버깅 로그 추가
+        print(f"Request to Naver API: {data}")
+        print(f"Response status: {response.status_code}")
+        print(f"Response body: {response.text}")
+
         if response.status_code == 200:
             try:
                 response_data = response.json()
@@ -64,6 +62,7 @@ def get_restaurant_rank(keyword, company_id):
                         rank = idx
                         return rank
             except (json.JSONDecodeError, KeyError) as e:
+                print(f"Error parsing response: {e}")
                 return None
     
     return None
@@ -82,6 +81,9 @@ def get_rank():
 
         rank = get_restaurant_rank(keyword, company_id)
 
+        # 디버깅 로그 추가
+        print(f"Rank found: {rank}")
+
         return jsonify({
             'keyword': keyword,
             'company_id': company_id,
@@ -90,13 +92,7 @@ def get_rank():
         }), 200
 
     except Exception as e:
+        print(f"Error in /get_rank: {e}")
         return jsonify({
             'error': str(e)
         }), 500
-
-@app.route('/health', methods=['GET'])
-def health_check():
-    return jsonify({'status': 'healthy'}), 200
-
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
